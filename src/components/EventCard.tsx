@@ -34,7 +34,7 @@ export default function EventCard({
   const { timeline } = useTimeline();
   const precision = timeline.precision[event.id];
 
-  const { z, yawDeg, opacity, blurPx, defocus } = depthStyleFor(dx);
+  const { scale, projectedDx, yawDeg, opacity, blurPx, defocus } = depthStyleFor(dx);
   const focused = Math.abs(dx) <= FOCUS_RADIUS;
   const category = CATEGORIES[event.category];
 
@@ -58,9 +58,11 @@ export default function EventCard({
     <article
       className={classes}
       style={{
-        // left:50% puts the card's anchor on the cursor; the -50% centres it,
-        // then dx slides it along the rail and z pushes it into the distance.
-        transform: `translate3d(calc(-50% + ${dx.toFixed(1)}px), 0, ${z.toFixed(1)}px) rotateY(${yawDeg.toFixed(2)}deg)`,
+        // left:50% puts the card's anchor on the cursor; the -50% centres it
+        // (scale is about the centre, so this stays correct at any scale),
+        // projectedDx slides it along the rail and scale supplies the depth.
+        // Deliberately no translateZ — see utils/depth.ts.
+        transform: `translateX(calc(-50% + ${projectedDx.toFixed(1)}px)) scale(${scale.toFixed(4)}) rotateY(${yawDeg.toFixed(2)}deg)`,
         [rail === 'forward' ? 'bottom' : 'top']: `${lane * laneHeight}px`,
         opacity,
         filter: blurPx > 0.05 ? `blur(${blurPx}px)` : undefined,

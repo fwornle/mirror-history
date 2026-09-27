@@ -12,7 +12,9 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "typecheck": "tsc -b --noEmit",
-    "test": "node scripts/run-tests.mjs"
+    "test": "node scripts/run-tests.mjs",
+    "verify:wiki": "node scripts/verify-wiki.mjs",
+    "verify:youtube": "node scripts/verify-youtube.mjs scripts/youtube-candidates.json"
   },
   "dependencies": {
     "react": "^19.1.0",
