@@ -647,16 +647,6 @@ body {
   .card { transition: none !important; }
 }
 
-@media (max-width: 900px) {
-  .topbar { flex-wrap: wrap; gap: 12px; }
-  .topbar__readouts { margin-left: 0; width: 100%; }
-  .readout { flex: 1 1 0; min-width: 0; }
-  .bottombar { flex-wrap: wrap; }
-  .controls { margin-left: 0; width: 100%; }
-  .scrub input { width: 100%; flex: 1 1 auto; }
-  .scrub { flex: 1 1 100%; }
-}
-
 /* --- card height discipline ---------------------------------------------
  * A card must not spill into the lane above it while you scroll past. Only
  * the card you have actually opened is allowed to grow, and it grows away
@@ -1525,14 +1515,24 @@ body {
   .drawer__scrim { transition: none; }
 }
 
-/* --- phone, portrait or landscape ----------------------------------------
- * Width alone is the wrong trigger. A phone on its side is ~844x390: wide
- * enough to miss a max-width rule, but only 390px tall, and the wrapped bars
- * from the 900px rule above then eat 372px of that — leaving 5% of the screen
- * for the timeline. Short viewports get the same compact treatment as narrow
- * ones, and because this block comes after the 900px one it wins there.
+/* --- phone and tablet ----------------------------------------------------
+ * Measured chrome before this block existed, at 100% zoom:
+ *
+ *    768x1024  iPad portrait    374px  (63% timeline)
+ *   1024x768   iPad landscape   383px  (50%)
+ *    960x900   half-screen      409px  (55%)
+ *    390x844   phone            488px  (42%)
+ *    844x390   phone, sideways  372px  ( 5%)
+ *
+ * So the bars were never a phone-only problem — they stack as soon as their
+ * content stops fitting, which is anything under ~1400px. Everything up to a
+ * 1024px tablet now collapses to ☰ plus a scrubber.
+ *
+ * Height is a separate trigger, not a refinement of width: a phone on its side
+ * is ~844x390, wide enough to miss any max-width rule but with only 390px to
+ * spend. Hence the `max-height` arm.
  */
-@media (max-width: 720px), (max-height: 520px) {
+@media (max-width: 1024px), (max-height: 520px) {
   .drawer { display: block; }
   .topbar__menu { display: inline-flex; align-items: center; justify-content: center; }
 
@@ -1587,4 +1587,23 @@ body {
     max-height: 86vh;
     padding: 14px 15px 13px;
   }
+}
+
+/* --- between a tablet and a wide desktop ---------------------------------
+ * Above the compact tier the bars fit on one row each — except the bottom bar,
+ * which kept wrapping into a second row all the way up to 1366px (112px tall
+ * against 81px when it fits). The culprit is the nowrap hint, ~300px of text
+ * telling you to click a card. It is the least load-bearing thing in the bar
+ * and the first thing to go; the drawer still carries the same sentence on
+ * touch sizes, where it is actually needed.
+ */
+@media (min-width: 1025px) and (max-width: 1399px) {
+  .bottombar__hint { display: none; }
+
+  /* The top bar wraps here too, and for the same reason: the strapline is
+     allowed 46ch, which with the search field and three readouts overruns the
+     row and costs 32px of height. The date it quotes is also the one the
+     settings panel owns, so dropping it loses nothing a user cannot find. */
+  .topbar { gap: 18px; }
+  .topbar__brand p { display: none; }
 }
