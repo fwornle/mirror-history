@@ -879,7 +879,8 @@ body {
 }
 
 .card:hover .card__expand { opacity: 1; }
-.card__hit:focus-visible ~ .card__expand { opacity: 1; }
+/* The hint lives inside the button, so this is a descendant, not a sibling. */
+.card__hit:focus-visible .card__expand { opacity: 1; }
 
 .card:hover {
   border-color: color-mix(in srgb, var(--cat-hue) 88%, white 10%);
@@ -1359,3 +1360,29 @@ body {
 .sheet__section--note ul { margin: 0 0 11px; padding-left: 19px; }
 .sheet__section--note li { margin-bottom: 7px; }
 .sheet__section--note strong { color: var(--ink); }
+
+/* The expand chip is the one badge every card carries, so the "cards open"
+   affordance never depends on hover — which touch devices do not have. */
+.card__badge--open {
+  border-color: color-mix(in srgb, var(--cursor) 58%, transparent);
+  color: var(--cursor);
+  font-size: 10px;
+  line-height: 1;
+  padding: 2px 4px;
+}
+
+.card--personal .card__badge--open { border-color: #c9962f; color: #8a6412; }
+
+.card:hover .card__badge--open {
+  background: color-mix(in srgb, var(--cursor) 26%, transparent);
+}
+
+/* A standing instruction in the chrome, so the interaction is discoverable
+   before you have touched anything at all. */
+.bottombar__hint {
+  font-size: 11px;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+
+.bottombar__hint strong { color: var(--ink-2); font-weight: 600; }

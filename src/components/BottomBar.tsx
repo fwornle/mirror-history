@@ -42,6 +42,10 @@ export default function BottomBar({
         })}
       </div>
 
+      <p className="bottombar__hint">
+        <strong>Click any card</strong> for the full story, links and video
+      </p>
+
       <div className="controls">
         <label className="scrub">
           <span className="scrub__label">Travel</span>

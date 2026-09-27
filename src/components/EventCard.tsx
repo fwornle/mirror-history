@@ -130,6 +130,14 @@ export default function EventCard({
                   Wikipedia
                 </span>
               )}
+              {/*
+                Always visible, never hover-only: a hover hint does not exist on
+                a touch screen and does nothing for someone scanning the rails.
+                This is the affordance that says the card is a door.
+              */}
+              <span className="card__badge card__badge--open" title="Click to expand">
+                ⤢
+              </span>
             </span>
           </footer>
         )}
