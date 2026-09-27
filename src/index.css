@@ -821,8 +821,76 @@ body {
   cursor: pointer;
 }
 
-.card__hasvideo { margin-left: auto; font-size: 9px; color: var(--ink-muted); }
-.card__foot { display: flex; align-items: center; gap: 6px; }
+/* --- card affordances ---------------------------------------------------
+ * Every card opens the zoomed panel. That was true from the start but
+ * completely unsignposted, so the feature may as well not have existed.
+ * The badge row says what is inside; the hover state says it is a door.
+ */
+.card__foot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.card__badges {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+
+.card__badge {
+  font-size: 8.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 2px 5px;
+  border-radius: 3px;
+  border: 1px solid var(--hairline-strong);
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+
+/* An embedded player is the rare one, so it gets the filled treatment. */
+.card__badge--video {
+  border-color: color-mix(in srgb, var(--cat-hue) 70%, transparent);
+  background: color-mix(in srgb, var(--cat-hue) 42%, transparent);
+  color: var(--ink);
+  font-weight: 620;
+}
+
+.card--personal .card__badge { border-color: rgba(0, 0, 0, 0.22); color: #6a5c3d; }
+
+.card__expand {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 4px 0 5px;
+  text-align: center;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--cat-hue) 62%, black) 55%);
+  opacity: 0;
+  transition: opacity 110ms ease;
+  pointer-events: none;
+}
+
+.card:hover .card__expand { opacity: 1; }
+.card__hit:focus-visible ~ .card__expand { opacity: 1; }
+
+.card:hover {
+  border-color: color-mix(in srgb, var(--cat-hue) 88%, white 10%);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--cat-hue) 62%, transparent),
+    0 22px 50px rgba(0, 0, 0, 0.6);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card__expand { transition: none; }
+}
 
 .card--selected {
   border-color: var(--cursor);

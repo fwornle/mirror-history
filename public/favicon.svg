@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Mirror History">
+  <rect width="32" height="32" rx="7" fill="#0f172a"/>
+  <!-- the two rails -->
+  <rect x="4" y="11" width="24" height="2" rx="1" fill="#7fd7ff"/>
+  <rect x="4" y="19" width="24" height="2" rx="1" fill="#f0a882"/>
+  <!-- the fixed reading head -->
+  <rect x="15" y="4" width="2" height="24" rx="1" fill="#ffd166"/>
+</svg>

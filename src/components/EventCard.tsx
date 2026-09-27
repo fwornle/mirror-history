@@ -112,11 +112,29 @@ export default function EventCard({
                   : `you were ${formatAge(event.yearsFromBirth)}`)
                 : `${formatAge(event.yearsFromBirth)} before you`}
             </span>
-            {event.media.youtubeId && (
-              <span className="card__hasvideo" title="Has video">▶</span>
-            )}
+
+            {/*
+              Every card opens into the zoomed panel, but nothing said so —
+              which made the whole feature invisible. These badges advertise
+              what is behind each one, and the "expand" hint on hover says
+              plainly that the card is a door.
+            */}
+            <span className="card__badges">
+              {event.media.youtubeId && (
+                <span className="card__badge card__badge--video" title="Plays a video here">
+                  ▶ video
+                </span>
+              )}
+              {event.media.wiki && (
+                <span className="card__badge" title="Background from Wikipedia">
+                  Wikipedia
+                </span>
+              )}
+            </span>
           </footer>
         )}
+
+        <span className="card__expand" aria-hidden="true">Click to expand</span>
       </button>
     </article>
   );
