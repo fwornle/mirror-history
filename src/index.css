@@ -50,6 +50,11 @@ body {
   height: 100%;
   display: grid;
   grid-template-rows: auto 1fr auto;
+  /* An implicit `auto` column is sized by its widest item's min-content, so the
+     top bar's intrinsic width (nowrap title + the search field) would widen the
+     whole column past the viewport and let the document pan sideways on a
+     phone. Capping the column at the container makes the bars shrink instead. */
+  grid-template-columns: minmax(0, 1fr);
   background:
     radial-gradient(120% 70% at 50% 50%, rgba(66, 84, 223, 0.13), transparent 62%),
     linear-gradient(180deg, var(--surface-deep), var(--surface) 28%, var(--surface) 72%, var(--surface-deep));
@@ -564,6 +569,14 @@ body {
   align-items: center;
   gap: 14px;
   margin-left: auto;
+}
+
+/* Zoom plus the two jump buttons, as one group, so the same markup can sit in
+   the bottom bar or in the drawer without either layout knowing the other. */
+.view-controls {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
 .scrub {
@@ -1386,3 +1399,192 @@ body {
 }
 
 .bottombar__hint strong { color: var(--ink-2); font-weight: 600; }
+
+/* --- hamburger and slide-in drawer --------------------------------------
+ * A phone has no room for a permanent bar of filters plus a row of readouts:
+ * between them they were taking most of the viewport, leaving a sliver of the
+ * timeline the app exists to show. So on a narrow screen the chrome collapses:
+ * the readouts go (the cursor already prints both years and the age), and the
+ * filters, zoom and jumps move behind ☰ into a panel that slides in over the
+ * stage.
+ *
+ * Both the drawer and the hamburger are display:none above the breakpoint, so
+ * a wide screen is completely unaffected and the controls live only in the
+ * bottom bar.
+ */
+.topbar__menu {
+  display: none;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid var(--hairline);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--ink-2);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.topbar__menu:hover { background: rgba(255, 255, 255, 0.1); color: var(--ink); }
+
+.drawer { display: none; }
+
+.drawer__scrim {
+  position: fixed;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  background: rgba(4, 8, 18, 0.6);
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+.drawer--open .drawer__scrim { opacity: 1; pointer-events: auto; }
+
+.drawer__panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  width: min(86vw, 320px);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 14px 16px calc(16px + env(safe-area-inset-bottom));
+  overflow-y: auto;
+  border-right: 1px solid var(--hairline-strong);
+  background: var(--panel-raised, rgba(12, 18, 34, 0.98));
+  box-shadow: 24px 0 60px rgba(0, 0, 0, 0.6);
+  transform: translateX(-100%);
+  transition: transform 220ms cubic-bezier(0.2, 0.9, 0.3, 1);
+  outline: none;
+}
+
+.drawer--open .drawer__panel { transform: translateX(0); }
+
+.drawer__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.drawer__head h2 {
+  margin: 0;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-muted);
+  font-weight: 600;
+}
+
+.drawer__close {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--hairline);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--ink-2);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.drawer__section { display: flex; flex-direction: column; gap: 9px; }
+
+.drawer__section h3 {
+  margin: 0;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--ink-muted);
+  font-weight: 600;
+}
+
+/* In the drawer the filters get a full column and real tap targets, rather
+   than the tight inline pills the bottom bar uses. */
+.drawer .legend { flex-direction: column; align-items: stretch; gap: 5px; }
+.drawer .legend__item { justify-content: flex-start; padding: 9px 11px; font-size: 12.5px; }
+.drawer .view-controls { flex-wrap: wrap; gap: 10px; }
+.drawer__settings { width: 100%; }
+
+.drawer__hint {
+  margin: auto 0 0;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--ink-muted);
+}
+
+.drawer__hint strong { color: var(--ink-2); font-weight: 600; }
+
+@media (prefers-reduced-motion: reduce) {
+  .drawer__panel,
+  .drawer__scrim { transition: none; }
+}
+
+/* --- phone, portrait or landscape ----------------------------------------
+ * Width alone is the wrong trigger. A phone on its side is ~844x390: wide
+ * enough to miss a max-width rule, but only 390px tall, and the wrapped bars
+ * from the 900px rule above then eat 372px of that — leaving 5% of the screen
+ * for the timeline. Short viewports get the same compact treatment as narrow
+ * ones, and because this block comes after the 900px one it wins there.
+ */
+@media (max-width: 720px), (max-height: 520px) {
+  .drawer { display: block; }
+  .topbar__menu { display: inline-flex; align-items: center; justify-content: center; }
+
+  .topbar {
+    flex-wrap: nowrap;
+    gap: 10px;
+    padding: 8px 12px;
+  }
+
+  /* The strapline and the three readouts are the two biggest space thieves.
+     Neither is load-bearing on a phone: the cursor in the middle of the stage
+     already reads both axes and the distance from birth. */
+  .topbar__brand p,
+  .topbar__readouts { display: none; }
+
+  .topbar__brand { min-width: 0; flex: 0 1 auto; }
+
+  /* Truncate rather than push: a nowrap title that cannot shrink is what
+     widened the grid column in the first place. */
+  .topbar__brand h1 {
+    font-size: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .search {
+    min-width: 0;
+    /* Prefers ~130px but yields the moment the row runs short. */
+    flex: 1 1 130px;
+    max-width: none;
+  }
+
+  .bottombar {
+    gap: 10px;
+    padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+  }
+
+  /* These now live in the drawer. */
+  .bottombar > .legend,
+  .bottombar__hint,
+  .bottombar .view-controls { display: none; }
+
+  .controls { margin-left: 0; width: 100%; }
+  .scrub { flex: 1 1 100%; }
+  .scrub input { width: 100%; flex: 1 1 auto; }
+  .scrub__label { display: none; }
+
+  /* Give the reader the whole width, and keep the panel clear of the notch. */
+  .detail__panel {
+    width: calc(100vw - 20px);
+    max-height: 86vh;
+    padding: 14px 15px 13px;
+  }
+}

@@ -5,6 +5,7 @@ import Rail from '@/components/Rail';
 import FocusCursor from '@/components/FocusCursor';
 import EventDetail from '@/components/EventDetail';
 import SettingsPanel from '@/components/SettingsPanel';
+import Drawer from '@/components/Drawer';
 import { useTimelineScroll } from '@/hooks/useTimelineScroll';
 import { useTimeline } from '@/state/timeline-store';
 import { ALL_CATEGORY_IDS, type CategoryId } from '@/config/categories';
@@ -29,6 +30,9 @@ export default function App() {
   // The setup card opens itself the first time, because a placeholder birth
   // date silently produces a plausible-looking but wrong timeline.
   const [settingsOpen, setSettingsOpen] = useState(() => !profile.configured);
+  // Narrow screens park the filters and zoom controls behind a hamburger; on a
+  // wide screen the drawer is never displayed and this stays false.
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const toggleCategory = useCallback((id: CategoryId) => {
     setActive((current) => {
@@ -103,6 +107,8 @@ export default function App() {
         mirrorDate={mirrorDate}
         onSearchPick={openEvent}
         onOpenSettings={() => setSettingsOpen(true)}
+        drawerOpen={drawerOpen}
+        onToggleDrawer={() => setDrawerOpen((open) => !open)}
       />
 
       <main
@@ -149,6 +155,19 @@ export default function App() {
         onScrub={glideTo}
         activeCategories={active}
         onToggleCategory={toggleCategory}
+      />
+
+      <Drawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        activeCategories={active}
+        onToggleCategory={toggleCategory}
+        zoomIndex={scroll.zoomIndex}
+        yearsLived={timeline.yearsLived}
+        placed={placed}
+        onZoom={scroll.setZoomIndex}
+        onScrub={glideTo}
+        onOpenSettings={() => setSettingsOpen(true)}
       />
 
       {settingsOpen && (

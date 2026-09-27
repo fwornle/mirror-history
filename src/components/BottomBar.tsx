@@ -1,5 +1,6 @@
-import { ALL_CATEGORY_IDS, CATEGORIES, type CategoryId } from '@/config/categories';
-import { ZOOM_LEVELS } from '@/config/timeline';
+import Legend from './Legend';
+import ViewControls from './ViewControls';
+import type { CategoryId } from '@/config/categories';
 
 interface Props {
   offset: number;
@@ -20,27 +21,10 @@ export default function BottomBar({
 }: Props) {
   return (
     <footer className="bottombar" onPointerDown={(e) => e.stopPropagation()}>
-      <div className="legend" role="group" aria-label="Filter by category">
-        {ALL_CATEGORY_IDS.map((id) => {
-          const category = CATEGORIES[id];
-          const on = activeCategories.has(id);
-          return (
-            <button
-              key={id}
-              type="button"
-              className={`legend__item${on ? '' : ' legend__item--off'}`}
-              style={{ ['--cat-hue' as string]: category.hue }}
-              onClick={() => onToggleCategory(id)}
-              aria-pressed={on}
-              title={category.description}
-            >
-              <span className="legend__swatch" aria-hidden="true" />
-              <span className="legend__glyph" aria-hidden="true">{category.glyph}</span>
-              <span className="legend__label">{category.label}</span>
-            </button>
-          );
-        })}
-      </div>
+      {/* Filters, hint and zoom move into the drawer on a narrow screen; the
+          scrubber stays, because travelling the timeline is the one control you
+          always want under your thumb. */}
+      <Legend activeCategories={activeCategories} onToggleCategory={onToggleCategory} />
 
       <p className="bottombar__hint">
         <strong>Click any card</strong> for the full story, links and video
@@ -68,19 +52,13 @@ export default function BottomBar({
           </span>
         </label>
 
-        <div className="zoom" role="group" aria-label="Zoom">
-          <button type="button" onClick={() => onZoom(zoomIndex - 1)} disabled={zoomIndex === 0} aria-label="Zoom out">−</button>
-          <span
-            className="zoom__value"
-            title="Cards that cannot fit a lane at this zoom are dropped, least significant first."
-          >
-            {placed.shown} of {placed.total}
-          </span>
-          <button type="button" onClick={() => onZoom(zoomIndex + 1)} disabled={zoomIndex === ZOOM_LEVELS.length - 1} aria-label="Zoom in">+</button>
-        </div>
-
-        <button type="button" className="control-btn" onClick={() => onScrub(0)}>Birth</button>
-        <button type="button" className="control-btn" onClick={() => onScrub(yearsLived)}>Today</button>
+        <ViewControls
+          zoomIndex={zoomIndex}
+          yearsLived={yearsLived}
+          placed={placed}
+          onZoom={onZoom}
+          onScrub={onScrub}
+        />
       </div>
     </footer>
   );
