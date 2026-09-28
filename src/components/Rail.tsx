@@ -5,9 +5,7 @@ import { useTimeline } from '@/state/timeline-store';
 import type { RailId } from '@/data/types';
 import type { CategoryId } from '@/config/categories';
 import { assignLanes } from '@/utils/lanes';
-import {
-  CULL_DISTANCE, LANES_PER_RAIL, MIN_LANE_HEIGHT, MIN_WEIGHT_BY_ZOOM, PERSPECTIVE,
-} from '@/config/timeline';
+import { CULL_DISTANCE, MIN_WEIGHT_BY_ZOOM, PERSPECTIVE, laneGeometry } from '@/config/timeline';
 
 interface Props {
   rail: RailId;
@@ -17,6 +15,13 @@ interface Props {
   activeCategories: Set<CategoryId>;
   selectedId: string | null;
   onSelect: (years: number, id: string) => void;
+  /**
+   * Reports the rail's measured scene height so the app can count what will
+   * actually be placed. Only one rail needs to supply it: both are
+   * `flex: 1 1 0` siblings of the same column, so one measurement describes
+   * both.
+   */
+  onMeasure?: (sceneHeight: number) => void;
 }
 
 const RAIL_COPY: Record<RailId, { title: string; hint: string }> = {
@@ -29,7 +34,7 @@ const RAIL_COPY: Record<RailId, { title: string; hint: string }> = {
  * which half of the dataset they draw and which way they read the calendar.
  */
 export default function Rail({
-  rail, offset, pxPerYear, zoomIndex, activeCategories, selectedId, onSelect,
+  rail, offset, pxPerYear, zoomIndex, activeCategories, selectedId, onSelect, onMeasure,
 }: Props) {
   const { timeline } = useTimeline();
   const minWeight = MIN_WEIGHT_BY_ZOOM[zoomIndex] ?? 1;
@@ -42,8 +47,8 @@ export default function Rail({
     [timeline, rail, minWeight],
   );
 
-  // Lane height is derived from the rail's real height rather than fixed, so
-  // the outermost lane always fits on screen instead of clipping on short
+  // Both the lane count and the lane height come from the rail's real height,
+  // so the outermost lane always fits on screen instead of clipping on short
   // viewports. Measured, not assumed.
   const sceneRef = useRef<HTMLDivElement>(null);
   const [sceneHeight, setSceneHeight] = useState(0);
@@ -59,13 +64,16 @@ export default function Rail({
     return () => observer.disconnect();
   }, []);
 
-  const laneHeight = Math.max(
-    MIN_LANE_HEIGHT,
-    (sceneHeight || MIN_LANE_HEIGHT * LANES_PER_RAIL) / LANES_PER_RAIL,
-  );
+  useEffect(() => { onMeasure?.(sceneHeight); }, [onMeasure, sceneHeight]);
 
-  // Lane packing depends only on zoom, so it survives every scroll frame.
-  const lanes = useMemo(() => assignLanes(events, pxPerYear), [events, pxPerYear]);
+  const { lanes: laneCount, laneHeight } = laneGeometry(sceneHeight);
+
+  // Lane packing depends only on zoom and the lane budget, so it survives
+  // every scroll frame.
+  const lanes = useMemo(
+    () => assignLanes(events, pxPerYear, laneCount),
+    [events, pxPerYear, laneCount],
+  );
 
   // Viewport culling: only cards near the cursor are in the DOM at all.
   const visible = useMemo(() => {

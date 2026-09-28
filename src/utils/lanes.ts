@@ -20,11 +20,17 @@ interface Placeable {
  * sort is by weight, what falls out is always the least significant event, and
  * zooming in widens the gap and brings it back.
  *
+ * `laneCount` is how many lanes the rail can actually show at its measured
+ * height — see `laneGeometry`. Packing against the constant instead would
+ * assign events to a lane that is never drawn, which reads as events silently
+ * going missing rather than as the rail being short.
+ *
  * Returns one entry per input event: its lane, or null if it was dropped.
  */
 export function assignLanes<T extends Placeable>(
   events: T[],
   pxPerYear: number,
+  laneCount: number = LANES_PER_RAIL,
 ): (number | null)[] {
   const minGapYears = (CARD_WIDTH + CARD_GAP) / pxPerYear;
 
@@ -35,13 +41,13 @@ export function assignLanes<T extends Placeable>(
       a.event.yearsFromBirth - b.event.yearsFromBirth);
 
   // Per lane, the centres already claimed on the timeline.
-  const claimed: number[][] = Array.from({ length: LANES_PER_RAIL }, () => []);
+  const claimed: number[][] = Array.from({ length: laneCount }, () => []);
   const lanes = new Array<number | null>(events.length).fill(null);
 
   for (const { event, index } of order) {
     const at = event.yearsFromBirth;
 
-    for (let lane = 0; lane < LANES_PER_RAIL; lane++) {
+    for (let lane = 0; lane < laneCount; lane++) {
       const clear = claimed[lane].every((taken) => Math.abs(taken - at) >= minGapYears);
       if (clear) {
         claimed[lane].push(at);

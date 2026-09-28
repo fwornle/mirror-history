@@ -1,5 +1,8 @@
 import { CATEGORIES } from '@/config/categories';
-import { CARD_WIDTH, FOCUS_RADIUS, LANE_HEIGHT_FOR_IMAGE } from '@/config/timeline';
+import {
+  CARD_LANE_SLACK, CARD_WIDTH, FOCUS_RADIUS, LANE_HEIGHT_FOR_IMAGE, MIN_LANE_HEIGHT,
+  bodyLinesFor,
+} from '@/config/timeline';
 import type { PlacedEvent, RailId } from '@/data/types';
 import { useTimeline } from '@/state/timeline-store';
 import { depthStyleFor } from '@/utils/depth';
@@ -41,6 +44,14 @@ export default function EventCard({
   const wiki = useWikiSummary(event.media.wiki, defocus < ENRICH_DEFOCUS);
   const showDetail = defocus < DETAIL_DEFOCUS;
   const showImage = wiki?.thumbnail && defocus < ENRICH_DEFOCUS && laneHeight >= LANE_HEIGHT_FOR_IMAGE;
+  // The description gets the lines the lane can actually spare, and is dropped
+  // outright when that is none — a short lane used to let `overflow: hidden`
+  // slice the paragraph mid-sentence and take the footer's badges with it.
+  const bodyLines = bodyLinesFor(laneHeight, focused);
+  const showBody = showDetail && bodyLines > 0;
+  // A lane below the fitting minimum — a landscape phone — cannot hold even the
+  // two-line title the chrome budget assumes, so the title gives up a line too.
+  const titleLines = laneHeight < MIN_LANE_HEIGHT ? 1 : 2;
 
   const dateLabel = formatEventDate(event.date, precision);
   const far = defocus > 0.8;
@@ -67,10 +78,12 @@ export default function EventCard({
         opacity,
         filter: blurPx > 0.05 ? `blur(${blurPx}px)` : undefined,
         width: `${CARD_WIDTH}px`,
-        maxHeight: `${laneHeight - 8}px`,
+        maxHeight: `${laneHeight - CARD_LANE_SLACK}px`,
         // Near cards must paint over far ones regardless of DOM order.
         zIndex: Math.round(1000 - Math.abs(dx)),
         ['--cat-hue' as string]: category.hue,
+        ['--card-body-lines' as string]: bodyLines,
+        ['--card-title-lines' as string]: titleLines,
       }}
       // Far cards are decorative at best and must not be tab stops or read out.
       aria-hidden={far ? true : undefined}
@@ -101,7 +114,7 @@ export default function EventCard({
 
         <h3 className="card__title">{event.title}</h3>
 
-        {showDetail && event.description && (
+        {showBody && event.description && (
           <p className="card__body">{event.description}</p>
         )}
 

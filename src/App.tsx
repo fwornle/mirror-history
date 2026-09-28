@@ -9,7 +9,7 @@ import Drawer from '@/components/Drawer';
 import { useTimelineScroll } from '@/hooks/useTimelineScroll';
 import { useTimeline } from '@/state/timeline-store';
 import { ALL_CATEGORY_IDS, type CategoryId } from '@/config/categories';
-import { MIN_WEIGHT_BY_ZOOM } from '@/config/timeline';
+import { MIN_WEIGHT_BY_ZOOM, laneGeometry } from '@/config/timeline';
 import { assignLanes } from '@/utils/lanes';
 import { addYears } from '@/utils/time';
 import type { PlacedEvent } from '@/data/types';
@@ -33,6 +33,12 @@ export default function App() {
   // Narrow screens park the filters and zoom controls behind a hamburger; on a
   // wide screen the drawer is never displayed and this stays false.
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // How tall one rail's card area measured out to. The rails derive their own
+  // lane budget from this; the app needs the same number so the "N of M shown"
+  // readout counts the lanes that exist rather than the three a desktop gets.
+  const [sceneHeight, setSceneHeight] = useState(0);
+  const onRailMeasure = useCallback((h: number) => setSceneHeight(h), []);
 
   const toggleCategory = useCallback((id: CategoryId) => {
     setActive((current) => {
@@ -82,6 +88,7 @@ export default function App() {
   // reveals events instead of merely enlarging the ones already on screen.
   const placed = useMemo(() => {
     const minWeight = MIN_WEIGHT_BY_ZOOM[scroll.zoomIndex] ?? 1;
+    const { lanes: laneCount } = laneGeometry(sceneHeight);
     let shown = 0;
     let total = 0;
 
@@ -90,10 +97,11 @@ export default function App() {
       total += inScope.length;
       const admitted = inScope.filter(
         (e) => e.weight >= minWeight || e.category === 'personal');
-      shown += assignLanes(admitted, pxPerYear).filter((lane) => lane !== null).length;
+      shown += assignLanes(admitted, pxPerYear, laneCount)
+        .filter((lane) => lane !== null).length;
     }
     return { shown, total };
-  }, [timeline, scroll.zoomIndex, pxPerYear, active]);
+  }, [timeline, scroll.zoomIndex, pxPerYear, active, sceneHeight]);
 
   // The two dates the cursor is reading, one on each rail.
   const forwardDate = useMemo(() => addYears(timeline.birth, offset), [timeline.birth, offset]);
@@ -126,6 +134,7 @@ export default function App() {
           activeCategories={active}
           selectedId={selectedId}
           onSelect={onCardSelect}
+          onMeasure={onRailMeasure}
         />
 
         <FocusCursor offset={offset} forwardDate={forwardDate} mirrorDate={mirrorDate} />
