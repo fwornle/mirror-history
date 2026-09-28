@@ -72,13 +72,30 @@ export default function App() {
     [timeline, selectedId],
   );
 
+  /*
+   * The setup sheet and the event reader are mutually exclusive.
+   *
+   * Both are full-screen readers competing for the same space, and the sheet
+   * sits above the detail panel — so opening it while reading an event covered
+   * that event completely, date field square over its close button. Whichever
+   * you open now dismisses the other. Editing the hinge with an event selected
+   * is semantically fragile anyway: moving the birth date can invalidate the
+   * selection outright, which is why there is already an effect clearing it.
+   */
+  const openSettings = useCallback(() => {
+    setSettingsOpen(true);
+    setSelectedId(null);
+  }, []);
+
   /** Bring an event under the cursor and open its zoomed panel. */
   const openEvent = useCallback((event: PlacedEvent) => {
+    setSettingsOpen(false);
     setSelectedId(event.id);
     glideTo(event.yearsFromBirth);
   }, [glideTo]);
 
   const onCardSelect = useCallback((years: number, id: string) => {
+    setSettingsOpen(false);
     setSelectedId((current) => (current === id ? null : id));
     glideTo(years);
   }, [glideTo]);
@@ -114,7 +131,7 @@ export default function App() {
         forwardDate={forwardDate}
         mirrorDate={mirrorDate}
         onSearchPick={openEvent}
-        onOpenSettings={() => setSettingsOpen(true)}
+        onOpenSettings={openSettings}
         drawerOpen={drawerOpen}
         onToggleDrawer={() => setDrawerOpen((open) => !open)}
       />
@@ -176,7 +193,7 @@ export default function App() {
         placed={placed}
         onZoom={scroll.setZoomIndex}
         onScrub={glideTo}
-        onOpenSettings={() => setSettingsOpen(true)}
+        onOpenSettings={openSettings}
       />
 
       {settingsOpen && (
