@@ -21,7 +21,7 @@ const source = await readFile(HISTORY, 'utf8');
 
 // id and wiki title are on separate lines within the same object literal.
 const entries = [];
-for (const block of source.split(/^  \{ id: '/m).slice(1)) {
+for (const block of source.split(/^ {2}\{ id: '/m).slice(1)) {
   const id = block.slice(0, block.indexOf("'"));
   // The dataset escapes apostrophes inside these single-quoted literals, so a
   // naive [^']+ stops at the backslash and reports a truncated, "broken" title

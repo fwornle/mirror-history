@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useTimeline } from '@/state/timeline-store';
+import { useTimeline } from '@/state/timeline-context';
 import type { RailId } from '@/data/types';
 import { addYears } from '@/utils/time';
 

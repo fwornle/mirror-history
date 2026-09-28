@@ -7,7 +7,7 @@ import EventDetail from '@/components/EventDetail';
 import SettingsPanel from '@/components/SettingsPanel';
 import Drawer from '@/components/Drawer';
 import { useTimelineScroll } from '@/hooks/useTimelineScroll';
-import { useTimeline } from '@/state/timeline-store';
+import { useTimeline } from '@/state/timeline-context';
 import { ALL_CATEGORY_IDS, type CategoryId } from '@/config/categories';
 import { MIN_WEIGHT_BY_ZOOM, laneGeometry } from '@/config/timeline';
 import { assignLanes } from '@/utils/lanes';
@@ -49,13 +49,6 @@ export default function App() {
     });
   }, []);
 
-  // Changing the birth date rebuilds both rails, so a selection made against
-  // the old hinge may no longer exist.
-  useEffect(() => {
-    setSelectedId((current) =>
-      (current && timeline.all.some((e) => e.id === current) ? current : null));
-  }, [timeline]);
-
   // Moving the inflection point invalidates where the cursor was standing: an
   // offset of "51 years from birth" means a different moment once birth moves.
   // Re-anchor on today, which is where the app opens. Skipped on first mount,
@@ -67,6 +60,14 @@ export default function App() {
     glideTo(timeline.yearsLived);
   }, [birthKey, glideTo, timeline.yearsLived]);
 
+  /*
+   * Changing the birth date rebuilds both rails, so a selection made against
+   * the old hinge may no longer exist. Nothing needs to clear it: looking the
+   * id up each render already yields null for an event that is gone, and the
+   * panel is driven by this value rather than by the raw id. An effect that
+   * reset the state as well was doing the same job a second time, one render
+   * later.
+   */
   const selected: PlacedEvent | null = useMemo(
     () => timeline.all.find((e) => e.id === selectedId) ?? null,
     [timeline, selectedId],
@@ -167,7 +168,13 @@ export default function App() {
         />
 
         {selected && (
-          <EventDetail event={selected} onClose={() => setSelectedId(null)} />
+          /*
+           * Keyed by event, so switching events remounts the panel instead of
+           * reusing it. That is what stops the previous event's video carrying
+           * over — the player state is per-mount, and no effect has to notice
+           * the change and undo it.
+           */
+          <EventDetail key={selected.id} event={selected} onClose={() => setSelectedId(null)} />
         )}
       </main>
 

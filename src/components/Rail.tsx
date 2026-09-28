@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import EventCard from './EventCard';
 import AxisRuler from './AxisRuler';
-import { useTimeline } from '@/state/timeline-store';
+import { useTimeline } from '@/state/timeline-context';
 import type { RailId } from '@/data/types';
 import type { CategoryId } from '@/config/categories';
 import { assignLanes } from '@/utils/lanes';

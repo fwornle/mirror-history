@@ -1,5 +1,5 @@
 import SearchBox from './SearchBox';
-import { useTimeline } from '@/state/timeline-store';
+import { useTimeline } from '@/state/timeline-context';
 import type { PlacedEvent } from '@/data/types';
 import { formatAge, formatEventDate, formatYear } from '@/utils/time';
 

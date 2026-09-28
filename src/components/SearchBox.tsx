@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { CATEGORIES } from '@/config/categories';
 import type { PlacedEvent } from '@/data/types';
-import { useTimeline } from '@/state/timeline-store';
+import { useTimeline } from '@/state/timeline-context';
 import { formatEventDate, formatYear } from '@/utils/time';
 
 interface Props {
@@ -20,7 +20,7 @@ function score(event: PlacedEvent, query: string): number {
   const title = event.title.toLowerCase();
   const index = title.indexOf(query);
 
-  let base = 0;
+  let base: number;
   if (title === query) base = 1000;
   else if (index === 0) base = 800;
   else if (index > 0 && /\s|—|-/.test(title[index - 1] ?? ' ')) base = 600; // word start
@@ -40,6 +40,14 @@ export default function SearchBox({ onPick }: Props) {
   const boxRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  /**
+   * Every query change resets the highlighted row, so arrowing down lands on
+   * the first result of the *new* list. This is a plain setter rather than an
+   * effect on `query`: the query only ever changes from user input, and an
+   * effect would cost an extra render to correct state React had just set.
+   */
+  const changeQuery = (next: string) => { setQuery(next); setActive(0); };
+
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (q.length < 2) return [];
@@ -50,8 +58,6 @@ export default function SearchBox({ onPick }: Props) {
       .slice(0, MAX_RESULTS)
       .map((r) => r.event);
   }, [query, timeline]);
-
-  useEffect(() => { setActive(0); }, [query]);
 
   // Close when the click lands anywhere else.
   useEffect(() => {
@@ -77,7 +83,7 @@ export default function SearchBox({ onPick }: Props) {
   const choose = (event: PlacedEvent) => {
     onPick(event);
     setOpen(false);
-    setQuery(event.title);
+    changeQuery(event.title);
     inputRef.current?.blur();
   };
 
@@ -103,12 +109,12 @@ export default function SearchBox({ onPick }: Props) {
         aria-expanded={open && results.length > 0}
         aria-controls="search-results"
         aria-autocomplete="list"
-        onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
+        onChange={(e) => { changeQuery(e.target.value); setOpen(true); }}
         onFocus={() => setOpen(true)}
         onKeyDown={onKeyDown}
       />
       {query && (
-        <button type="button" className="search__clear" onClick={() => { setQuery(''); inputRef.current?.focus(); }} aria-label="Clear search">✕</button>
+        <button type="button" className="search__clear" onClick={() => { changeQuery(''); inputRef.current?.focus(); }} aria-label="Clear search">✕</button>
       )}
 
       {open && results.length > 0 && (

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { CATEGORIES } from '@/config/categories';
 import type { PlacedEvent } from '@/data/types';
-import { useTimeline } from '@/state/timeline-store';
+import { useTimeline } from '@/state/timeline-context';
 import { useWikiSummary } from '@/hooks/useWikiSummary';
 import { formatAge, formatEventDate, formatYear } from '@/utils/time';
 import { addYears } from '@/utils/time';
@@ -35,9 +35,6 @@ export default function EventDetail({ event, onClose }: Props) {
     timeline.birth,
     event.rail === 'forward' ? -event.yearsFromBirth : event.yearsFromBirth,
   );
-
-  // Reset the player whenever a different event is shown in the same panel.
-  useEffect(() => { setPlaying(false); }, [event.id]);
 
   useEffect(() => {
     closeRef.current?.focus();

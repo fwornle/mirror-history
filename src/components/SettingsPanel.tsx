@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { useTimeline, validateBirthDate } from '@/state/timeline-store';
+import { useTimeline, validateBirthDate } from '@/state/timeline-context';
 import { parseMetaExport, type ImportResult } from '@/data/import/meta-export';
 import type { PersonalEvent } from '@/data/types';
 import { formatEventDate } from '@/utils/time';
@@ -178,7 +178,7 @@ export default function SettingsPanel({ onClose, firstRun }: Props) {
                   type="button"
                   className="btn btn--primary"
                   onClick={() => {
-                    setBirthDate(report.offeredBirthDate!, report.offeredName || undefined);
+                    setBirthDate(report.offeredBirthDate!, report.offeredName === '' ? undefined : report.offeredName);
                     setDraftDate(report.offeredBirthDate!);
                     if (report.offeredName) setDraftName(report.offeredName);
                   }}

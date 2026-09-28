@@ -50,8 +50,13 @@ export function useTimelineScroll({ maxSpan, initialOffset = 0 }: Options): Time
   const [dragging, setDragging] = useState(false);
 
   const pxPerYear = ZOOM_LEVELS[zoomIndex];
+  // Mirrored into a ref because the drag and inertia callbacks are created once
+  // and would otherwise close over the zoom level they were born with. Written
+  // in an effect, not during render: a render may be discarded or replayed, and
+  // a ref written there survives it, which is how a ref ends up describing a
+  // render that never committed. The pointer handlers only read it after paint.
   const pxPerYearRef = useRef(pxPerYear);
-  pxPerYearRef.current = pxPerYear;
+  useEffect(() => { pxPerYearRef.current = pxPerYear; }, [pxPerYear]);
 
   const offsetRef = useRef(offset);
   const velocity = useRef(0);

@@ -4,7 +4,7 @@ import {
   bodyLinesFor,
 } from '@/config/timeline';
 import type { PlacedEvent, RailId } from '@/data/types';
-import { useTimeline } from '@/state/timeline-store';
+import { useTimeline } from '@/state/timeline-context';
 import { depthStyleFor } from '@/utils/depth';
 import { formatAge, formatEventDate } from '@/utils/time';
 import { useWikiSummary } from '@/hooks/useWikiSummary';
